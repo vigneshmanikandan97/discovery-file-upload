@@ -90,19 +90,38 @@ def uploadDocumentsToDiscovery(url, regex, url_base):
     print(json.dumps(add_doc, indent=2))
     return add_doc
 
+def getStopWordStatus(env_id, collection_id):
+    """
+    params: Environment ID and Collection ID
+    returns: Details of available stopword list in JSON
+    """
+    try:
+        result = discovery.get_stopword_list_status(env_id, collection_id)
+        return result
+    except:
+        return '{\'Exception\': Watson API Exception}'
+    
+
+
+def addStopWords(env_id, collection_id, sw_file, sw_file_name):
+    """
+    params: Environment ID, Collection ID, Stopword File, Stopword File name (optional, 'None' by default)
+    returns: Details of the ingested stopword file as JSON
+    """
+    return discovery.create_stopword_list(env_id, collection_id, sw_file, sw_file_name)
 
 if __name__ == '__main__':
     # ------------------------ #
     # New Collection           #
     # ------------------------ #
-    # new_collection = createCollection(ENV_ID, 'AI Search - Central', 'Collection for Aruba Central\'s AI Search', 'en')
-    # print(json.dumps(new_collection, indent=2))
+    new_collection = createCollection(ENV_ID, 'AI Search - Central', 'Collection for Aruba Central\'s AI Search', 'en')
+    print(json.dumps(new_collection, indent=2))
 
     # ------------------------ #
     # List Collection          #
     # ------------------------ #
     collections = listCollections(ENV_ID)
-    COLLECTION_ID = collections.get("collections")[1].get("collection_id")
+    COLLECTION_ID = collections.get("collections")[0].get("collection_id")
 
     # ------------------------ #
     # Get Collection Details   #
@@ -116,3 +135,15 @@ if __name__ == '__main__':
     regex = "\w*\.htm"
     added_document = uploadDocumentsToDiscovery(BASE_URL_OFFLINE, regex, BASE_URL_ONLINE)
     print(json.dumps(added_document, indent=2))
+
+    # ------------------------ #
+    # Stopword Status          #
+    # ------------------------ #
+    print(json.dumps(getStopWordStatus(ENV_ID, COLLECTION_ID), indent=2))
+
+    # ------------------------ #
+    # Upload Stopword list     #
+    # ------------------------ #
+    sw_file_path = Path('C:/Users/manikvig/Documents/Work/discovery-file-upload/aruba_search_stopwords.txt')
+    with open(sw_file_path, encoding='UTF-8') as sw_file:
+        print(json.dumps(addStopWords(ENV_ID, COLLECTION_ID, sw_file, 'Aruba Search Stopwords')))
