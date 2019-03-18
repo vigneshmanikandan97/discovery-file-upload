@@ -1,6 +1,5 @@
 import os
 import re
-from pathlib import Path, PureWindowsPath, PurePath
 
 def find(path, regex):
     htm_files = []

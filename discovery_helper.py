@@ -85,8 +85,8 @@ def uploadDocumentsToDiscovery(url, regex, url_base):
         meta_dict = {"source_url": meta}
         to_open = os.path.join(Path(BASE_URL_OFFLINE), x)
         with open(to_open, encoding='UTF-8') as f:
-            add_doc = discovery.add_document(ENV_ID, COLLECTION_ID, file=f, metadata=json.dumps(meta_dict)).get_result()
-    
+            add_doc = discovery.add_document(ENV_ID, COLLECTION_ID, file=f, metadata=json.dumps(meta_dict), filename=meta).get_result()
+
     print(json.dumps(add_doc, indent=2))
     return add_doc
 
@@ -114,7 +114,7 @@ if __name__ == '__main__':
     # ------------------------ #
     # New Collection           #
     # ------------------------ #
-    new_collection = createCollection(ENV_ID, 'AI Search - Central', 'Collection for Aruba Central\'s AI Search', 'en')
+    new_collection = createCollection(ENV_ID, 'AI Search', 'Collection for Aruba Central\'s AI Search', 'en')
     print(json.dumps(new_collection, indent=2))
 
     # ------------------------ #
