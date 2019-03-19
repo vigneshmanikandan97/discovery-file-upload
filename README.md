@@ -15,9 +15,9 @@ Python script to operate on Watson Discovery Collections - Upload Documents
   venv\Scripts\activate (on Windows)
   source venv (linux)
   ```
-* Make sure you have *Watson Developer Cloud*
+* Make sure you have all requirements
   ```
-  pip install watson-developer-cloud
+  pip install -r requirements.txt
   ```
 * Run ```python discovery_file_upload.py```
 
