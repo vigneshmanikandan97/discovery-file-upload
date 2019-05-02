@@ -29,14 +29,3 @@ def getHtmlLabel(htm_file, json_file, value_to_find):
         while json_file[k] != value_to_find:
             json_file = json_file[k]
             print(json_file)
-
-
-if __name__ == "__main__":
-
-    # Converting TOC XML into JSON
-    toc_json = parseXML(TOC_XML)
-
-    # Getting labels from TOC JSON
-    htm = 'http://help.central.arubanetworks.com/latest/documentation/online_help/Content/public_cloud/get_started/supported_switches.htm'
-    toc_dict, refined_htm = cleanerUtil(toc_json)
-    label = getHtmlLabel(htm, toc_dict, refined_htm)
