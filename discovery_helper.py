@@ -1,94 +1,145 @@
 import json
 import os
+import codecs
 from os import listdir
 from os.path import isfile, join
+from glob import glob
 from pathlib import Path, PureWindowsPath
 from watson_developer_cloud import DiscoveryV1
 from urllib.request import pathname2url
 from get_htm import find as find_htm_files
 
 
-BASE_URL_ONLINE = 'http://help.central.arubanetworks.com/latest/documentation/online_help/'
-BASE_URL_OFFLINE = 'C:/Users/manikvig/Desktop/'
-ENV_ID = "7206305c-d647-41f2-a1cc-eb909ec2c641"
+BASE_URL_ONLINE = '<SERVER_BASE_PATH>'
+BASE_URL_OFFLINE = '<LOCAL_BASE_PATH>'
+ENV_ID = '<ENVIRONMENT_ID>'
 
 discovery = DiscoveryV1(
-    version="2018-12-03",
-    url = "https://gateway-wdc.watsonplatform.net/discovery/api",
-    iam_apikey='gTAsSzZBIxtS_p5g1-JBIjfeXs0F2a0DtOZI7YAzO2Hk'
+    version="<VERSION>",
+    url="https://gateway-wdc.watsonplatform.net/discovery/api",
+    iam_apikey='<YOUR_API_KEY>'
 )
 
 # For Creating a new Collection
+
+
 def createCollection(env_id, name, desc, lang):
     """
     params: Environment ID, Collection Name, Collection Description, Collection Language
     returns: details of the newly created collection as JSON
     """
-    new_collection = discovery.create_collection(environment_id=env_id, configuration_id='', name=name, description=desc, language=lang).get_result()
+    new_collection = discovery.create_collection(
+        environment_id=env_id, configuration_id='', name=name, description=desc, language=lang).get_result()
     print(json.dumps(new_collection, indent=2))
     return new_collection
 
 # For Listing all collections in the Environment
+
+
 def listCollections(env_id):
     """
     params: requires Environment ID
     returns: list of all collections in JSON
     """
-    collections = discovery.list_collections(ENV_ID).get_result()
+    collections = discovery.list_collections(env_id).get_result()
     print(json.dumps(collections, indent=2))
     return collections
 
 # For getting details of a particular collection
+
+
 def collectionDetails(env_id, collection_id):
     """
     params: Environment ID and Collection ID
     returns: details of the given collection as JSON
     """
-    collection = discovery.get_collection(ENV_ID, COLLECTION_ID).get_result()
+    collection = discovery.get_collection(env_id, collection_id).get_result()
     print(json.dumps(collection, indent=2))
     return collection
 
 # For Updating exisiting collection
+
+
 def updateCollection(env_id, collection_id, config_id, name, desc):
     """
     params: Environment ID, Collection ID, Collection Name, Collection Description
     returns: updated collection details in JSON
     """
-    updated_collection = discovery.update_collection(environment_id=env_id, collection_id=collection_id, configuration_id=config_id, name=name, description=desc).get_result()
+    updated_collection = discovery.update_collection(
+        environment_id=env_id, collection_id=collection_id, configuration_id=config_id, name=name, description=desc).get_result()
     print(json.dumps(updated_collection, indent=2))
     return updated_collection
 
 # For Deleting collection
+
+
 def deleteCollection(env_id, collection_id):
     """
     params: Environment ID, Collection ID
     returns: status of delete operation (on collection) as JSON
     """
-    delete_collection = discovery.delete_collection(env_id, collection_id).get_result()
+    delete_collection = discovery.delete_collection(
+        env_id, collection_id).get_result()
     print(json.dumps(delete_collection, indent=2))
     return delete_collection
 
 # For Uploading HTM files to Discovery
-def uploadDocumentsToDiscovery(url, regex, url_base):
+
+
+def globDocumentsToDiscovery(url, regex, url_base, env_id, collection_id):
     """
+    DOCUMENT GLOBBER
     params: 
         url - local path (file path or directory path)
         regex - regular expression to match particular extension
         url_base - path to be added as meta to each document
     returns: prints the details of the uploaded documents
     """
-    htm_files_list = find_htm_files(url , regex)
-    print("Number of HTM files found: ", len(htm_files_list))
-    
-    for x in htm_files_list:
-        meta = url_base + str(pathname2url(x))
-        meta_dict = {"source_url": meta}
-        to_open = os.path.join(Path(BASE_URL_OFFLINE), x)
-        with open(to_open, encoding='UTF-8') as f:
-            add_doc = discovery.add_document(ENV_ID, COLLECTION_ID, file=f, metadata=json.dumps(meta_dict), filename=meta).get_result()
+    htm_files_list = find_htm_files(url, regex)
+    print('{} files in ../content folder\n'.format(len(htm_files_list)))
+    ftu_list = []
 
-    print(json.dumps(add_doc, indent=2))
-    return add_doc
+    for content_htm in htm_files_list:
+        meta = url_base + str(pathname2url(content_htm))
+        meta_dict = {"source_url": meta}
+
+        # passing each HTML file in content folder to globber to find match
+        parsed_htm_list = glob('<PATH>')
+        print('{} files in ../parsed_htm folder\n'.format(len(parsed_htm_list)))
+        content_file_name = (content_htm.split('\\')[-1]).split('.')[0]
+
+        for parsed_htm in parsed_htm_list:
+            parsed_file_name = (parsed_htm.split('\\')[-1]).split('.')[0]
+            if parsed_file_name == content_file_name:
+                with open(Path(parsed_htm), encoding='UTF-8') as f:
+                    add_doc = discovery.add_document(
+                        env_id, collection_id, file=f, metadata=json.dumps(meta_dict), filename=meta).get_result()
+                    print(add_doc)
+            else:
+                pass
+
+
+def uploadDocumentsToDiscovery(url, regex, url_base, env_id, collection_id):
+    """
+    DIRECT UPLOAD
+    params: 
+        url - local path (file path or directory path)
+        regex - regular expression to match particular extension
+        url_base - path to be added as meta to each document
+    returns: prints the details of the uploaded documents
+    """
+    htm_files_list = find_htm_files(url, regex)
+    print('{} files in ../content folder\n'.format(len(htm_files_list)))
+
+    for htm in htm_files_list:
+        to_open = os.path.join(Path(BASE_URL_OFFLINE), htm)
+        meta = url_base + str(pathname2url(htm))
+        meta_dict = {"source_url": meta}
+        with open(Path(to_open), encoding='UTF-8') as f:
+            add_doc = discovery.add_document(env_id, collection_id,
+                                             file=f, metadata=json.dumps(meta_dict), filename=meta).get_result()
+            print(json.dumps(add_doc, indent=4))
+
 
 def getStopWordStatus(env_id, collection_id):
     """
@@ -100,7 +151,6 @@ def getStopWordStatus(env_id, collection_id):
         return result
     except:
         return '{\'Exception\': Watson API Exception}'
-    
 
 
 def addStopWords(env_id, collection_id, sw_file, sw_file_name):
@@ -110,40 +160,19 @@ def addStopWords(env_id, collection_id, sw_file, sw_file_name):
     """
     return discovery.create_stopword_list(env_id, collection_id, sw_file, sw_file_name)
 
-if __name__ == '__main__':
-    # ------------------------ #
-    # New Collection           #
-    # ------------------------ #
-    new_collection = createCollection(ENV_ID, 'AI Search', 'Collection for Aruba Central\'s AI Search', 'en')
-    print(json.dumps(new_collection, indent=2))
 
-    # ------------------------ #
-    # List Collection          #
-    # ------------------------ #
-    collections = listCollections(ENV_ID)
-    COLLECTION_ID = collections.get("collections")[0].get("collection_id")
-
-    # ------------------------ #
-    # Get Collection Details   #
-    # ------------------------ #
-    collection = collectionDetails(ENV_ID, COLLECTION_ID)
-    CONFIG_ID = collection.get("configuration_id")
-
-    # ------------------------ #
-    # Upload Documents         #
-    # ------------------------ #
-    regex = "\w*\.htm"
-    added_document = uploadDocumentsToDiscovery(BASE_URL_OFFLINE, regex, BASE_URL_ONLINE)
-    print(json.dumps(added_document, indent=2))
-
-    # ------------------------ #
-    # Stopword Status          #
-    # ------------------------ #
-    print(json.dumps(getStopWordStatus(ENV_ID, COLLECTION_ID), indent=2))
-
-    # ------------------------ #
-    # Upload Stopword list     #
-    # ------------------------ #
-    sw_file_path = Path('C:/Users/manikvig/Documents/Work/discovery-file-upload/aruba_search_stopwords.txt')
-    with open(sw_file_path, encoding='UTF-8') as sw_file:
-        print(json.dumps(addStopWords(ENV_ID, COLLECTION_ID, sw_file, 'Aruba Search Stopwords')))
+def queryDiscovery(env_id, collection_id, query):
+    """
+    params: query string
+    returns: query response as JSON
+    """
+    return discovery.query(
+        environment_id=env_id,
+        collection_id=collection_id,
+        natural_language_query=query,
+        count=1,
+        passages=True,
+        return_fields="text",
+        passage_count=3,
+        passage_characters=1000
+    )
