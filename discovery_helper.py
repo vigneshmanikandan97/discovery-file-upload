@@ -176,3 +176,7 @@ def queryDiscovery(env_id, collection_id, query):
         passage_count=3,
         passage_characters=1000
     )
+
+if __name__ == "__main__":
+    # Your code here
+    pass

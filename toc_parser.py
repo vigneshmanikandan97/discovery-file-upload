@@ -29,3 +29,7 @@ def getHtmlLabel(htm_file, json_file, value_to_find):
         while json_file[k] != value_to_find:
             json_file = json_file[k]
             print(json_file)
+
+if __name__ == "__main__":
+        # Your code here
+        pass
