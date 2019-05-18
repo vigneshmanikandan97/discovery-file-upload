@@ -23,7 +23,7 @@ Python script to operate on Watson Discovery Collections - Upload Documents
 
 ### Script Features
 This script contains methods to perform CRUD on Watson Discovery Collection.
-# Edit:
+#### Edit:
 Added stopwords that are necessary to improve the response relevancy from Watson Discovery.
 
 &copy;Aruba Networks
