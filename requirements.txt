@@ -1,6 +1,9 @@
 certifi==2019.3.9
 chardet==3.0.4
+et-xmlfile==1.0.1
 idna==2.8
+jdcal==1.4.1
+openpyxl==2.6.2
 python-dateutil==2.8.0
 requests==2.21.0
 six==1.12.0
