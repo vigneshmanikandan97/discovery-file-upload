@@ -2,3 +2,4 @@ __pycache__/
 venv/
 .vscode/
 discovery_env_details.txt
+Assets/~$mock_data.xlsx
