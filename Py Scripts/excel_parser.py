@@ -117,7 +117,7 @@ def xl_iterator(ws, ROWS, COLS):
 
 if __name__ == "__main__":
     # Load workbook and worksheet
-    wb = load_workbook(Path('C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/mock_data.xlsx'))
+    wb = load_workbook(Path('/discovery-file-upload/Assets/mock_data.xlsx'))
     ws = wb['Sheet1']
 
     # Get total records in the worksheet
