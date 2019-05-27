@@ -1,5 +1,3 @@
-from openpyxl import  load_workbook, Workbook
-from pathlib import Path
 import json
 
 def find_value_range(ws, row, col):
@@ -114,17 +112,3 @@ def xl_iterator(ws, ROWS, COLS):
         if col_index == COLS and row_index <= ROWS:
             col_index = 0
         col_index += 1
-
-if __name__ == "__main__":
-    # Load workbook and worksheet
-    wb = load_workbook(Path('/discovery-file-upload/Assets/mock_data.xlsx'))
-    ws = wb['Sheet1']
-
-    # Get total records in the worksheet
-    dimensions = ws.calculate_dimension()
-    ROWS = int(dimensions.split('A1:D')[1])
-    # since format has only 4 columns by default
-    COLS = 4
-    
-    resJSON = xl_iterator(ws, ROWS, COLS)
-    print(json.dumps(resJSON, indent=4))
