@@ -3,7 +3,7 @@ import os
 import botocore
 import json
 from watson_developer_cloud import DiscoveryV1
-from io import BytesIO as bio
+from io import StringIO as sio
 
 files_from_IBM_Discovery = []
 files_from_IBM_Discovery_copy = []
@@ -15,9 +15,9 @@ aws_secret_access_key = 'B99lqgZ8KJacy7Dq2e1f/+U7XCWP2MFPZIdt7Mel'
 aws_bucket = 'help.central.arubanetworks.com'
 
 # IBM discovery credentails
-API_key = 'gTAsSzZBIxtS_p5g1-JBIjfeXs0F2a0DtOZI7YAzO2Hk'
+API_key = 'bEyrHwAUKTw4pwmehUFyQ1SYLD7ubOLPnTU3iXTOkVNW'
 discovery_url = 'https://gateway-wdc.watsonplatform.net/discovery/api'
-env_id = '7206305c-d647-41f2-a1cc-eb909ec2c641'
+env_id = 'c545c99f-aced-48b1-b3ef-fa498bfedeb7'
 
 # creating boto object
 s3 = boto3.resource('s3', aws_access_key_id= aws_access_key_id, aws_secret_access_key= aws_secret_access_key)
@@ -46,7 +46,7 @@ def listAllDocuments():
     
     response = discovery.query(
         'c545c99f-aced-48b1-b3ef-fa498bfedeb7',
-        '4c35b375-3ec9-4451-89fc-bc9341338a9d',
+        'a491da59-17d1-4ba4-ab9f-b725c9eee4f5',
         query = "*.*"
     )
     
@@ -101,7 +101,6 @@ def getAllFiles():
             file_name = file_path.split('/')[-1]
             files_from_S3_bucket.append(file_name)
             downloadFile(file_path, str(file_name))
-            break
             file_count = file_count + 1
     
     print('{} files found on S3 bucket'.format(file_count))
@@ -111,10 +110,12 @@ def downloadFile(file_path, file_name):
     
     try:
         print('Downloading \"{}\"..'.format(file_name))
-        # TO DO - convert botocore object to html file object
         obj = client.get_object(Bucket = aws_bucket, Key = file_path)
-        data = bio(obj.get('Body').read())
-        print(data.getvalue())
+        data = sio(obj.get('Body').read().decode('utf-8'))
+        meta = {
+        "source": file_path
+        }
+        discovery.add_document(env_id, 'ee012b37-6897-43ea-8f6d-68337f754f35', file = data, filename = file_path, metadata = json.dumps(meta))
         print("success\n")
     
     except botocore.exceptions.ClientError as e:
@@ -126,4 +127,3 @@ def downloadFile(file_path, file_name):
             raise 'ObjectNotFoundException'
 
 getAllFiles()
-# setupCollectionsAndConfigurations()

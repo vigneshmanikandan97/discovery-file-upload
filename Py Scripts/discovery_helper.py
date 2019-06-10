@@ -165,7 +165,7 @@ def globDocumentsToDiscovery(url, regex, url_base, env_id, collection_id):
 
 # For Uploading HTM files to Discovery with glob collector
 
-def uploadDocumentsToDiscovery(url, regex, url_base, env_id, collection_id):
+def uploadLocalDocumentsToDiscovery(url, regex, url_base, env_id, collection_id):
     """
     DIRECT UPLOAD
     params: 
@@ -182,9 +182,9 @@ def uploadDocumentsToDiscovery(url, regex, url_base, env_id, collection_id):
         meta = url_base + str(pathname2url(htm))
         meta_dict = {"source_url": meta}
         print(htm)
-        # with open(Path(to_open), encoding='UTF-8') as f:
-        #     add_doc = discovery.add_document(env_id, collection_id, file=f, metadata=json.dumps(meta_dict), filename=meta).get_result()
-        #     print(json.dumps(add_doc, indent=4))
+        with open(Path(to_open), encoding='UTF-8') as f:
+            add_doc = discovery.add_document(env_id, collection_id, file=f, metadata=json.dumps(meta_dict), filename=meta).get_result()
+            print(json.dumps(add_doc, indent=4))
 
 # To get stopwords from a collection
 
@@ -358,7 +358,7 @@ def startWorkflow(env_id):
                 add_doc = discovery.add_document(env_id, cfaqid, file=f, metadata = json.dumps({"source_url": fo['meta']}), filename = fo['meta']).get_result()
                 print(json.dumps(add_doc, indent=4))
 
-        uploadDocumentsToDiscovery(Path('C:/Users/manikvig/Desktop/content'), '\w*\.htm', 'https://help.central.arubanetworks.com/latest/documentation/online_help/content/', env_id, cugid)
+        uploadLocalDocumentsToDiscovery(Path('C:/Users/manikvig/Desktop/content'), '\w*\.htm', 'https://help.central.arubanetworks.com/latest/documentation/online_help/content/', env_id, cugid)
 
         # Upload stopwords to Central User Guide
         print('\nChecking stopword status..')
