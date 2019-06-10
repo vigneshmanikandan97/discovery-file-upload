@@ -127,3 +127,4 @@ def downloadFile(file_path, file_name):
             raise 'ObjectNotFoundException'
 
 getAllFiles()
+setupCollectionsAndConfigurations()
