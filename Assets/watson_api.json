@@ -1,0 +1,12 @@
+{
+    "environment_id": "<ENVIRONMENT>",
+    "collection_id": "<COLLECTION>",
+    "natural_language_query" : "<QUESTION>",
+    "examples": [
+        {
+            "document_id": "<DOC ID>",
+            "cross_reference": "<REFERENCES>",
+            "relevance": "NON NEGATIVE INTEGER"
+        }
+    ]
+}
