@@ -1,11 +1,12 @@
 {
     "environment_id": "c545c99f-aced-48b1-b3ef-fa498bfedeb7",
     "name": "Central User Guide Configuration",
-    "description": "",
+    "description": "Configures the central user guide collection",
     "conversions": {
         "html": {
             "exclude_content": {
                 "xpaths": [
+                    "//*[ @class='tab-bar']",
                     "//*[ @class='right']",
                     "//*[ @class='MCBreadcrumbsBox_0']",
                     "//*[ @class='modal']",
@@ -46,13 +47,6 @@
                 "xpaths": []
             }
         },
-        "json_normalizations": [
-            {
-                "destination_field": "title",
-                "operation": "move",
-                "source_field": "extracted_fields.document-title"
-            }
-        ],
         "pdf": {
             "heading": {
                 "fonts": [
@@ -156,6 +150,16 @@
         {
             "operation": "remove",
             "source_field": "html"
+        },
+        {
+            "destination_field": "title",
+            "operation": "move",
+            "source_field": "extracted_fields.document-title"
+        },
+        {
+            "destination_field": "source",
+            "operation": "move",
+            "source_field": "metadata.source_url"
         }
     ]
 }
