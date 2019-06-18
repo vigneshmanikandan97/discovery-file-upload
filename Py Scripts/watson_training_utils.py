@@ -58,6 +58,7 @@ def watsonJSONgenerator(xl_json, disc_dict, env_id, collection_id):
 
         # For each question, validate source
         for question in questions:
+
             count += 1
             watson_api_json = {
                 "environment_id": env_id,
@@ -74,9 +75,10 @@ def watsonJSONgenerator(xl_json, disc_dict, env_id, collection_id):
             watson_api_json.update({
                 'natural_language_query': question
             })
-            
+
             for source in sources:
                 doc_id = getSourceDocID(source, disc_dict)
+
                 if doc_id != False:
                     watson_api_json['examples'].append({
                         'document_id': doc_id,
@@ -84,9 +86,14 @@ def watsonJSONgenerator(xl_json, disc_dict, env_id, collection_id):
                         'relevance': relevance[index]
                     })
                     index += 1
-            
+                else:
+                    watson_api_json = {}
+                    # print('No match for {} document in collection..'.format(source))
+
             training_json.append({
                 count: watson_api_json
             })
-    
+            
+            print('\n')
+
     return training_json
