@@ -78,7 +78,7 @@ def xl_iterator(ws, ROWS, COLS):
 
                     for relevances in relevance_generator:
                         for relevance in relevances:
-                            xl_dict[count]['relevance'].append(relevance)
+                            xl_dict[count]['relevance'].append(int(relevance))
 
                 # Update dictionary
                 parsed_xl_json[count] = xl_dict[count].copy()
@@ -100,7 +100,8 @@ def xl_iterator(ws, ROWS, COLS):
                     init_row = row_bound + 2
                     
                     if col_index == 1 and row_index == ROWS:
-                        # print('\n---End of Excel file---\n')
+                        print('\n---Parsed Excel File---\n')
+                        print(json.dumps(parsed_xl_json, indent = 4))
                         return parsed_xl_json
                     
                     col_index = 0
