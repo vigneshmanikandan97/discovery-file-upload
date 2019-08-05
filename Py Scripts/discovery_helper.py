@@ -1,10 +1,10 @@
+import time
 import json
 import os
 import codecs
 import sys
 import argparse
-from os import listdir
-from os.path import isfile, join
+from os.path import join
 from glob import glob
 from pathlib import Path, PureWindowsPath
 from watson_developer_cloud import DiscoveryV1
@@ -13,6 +13,12 @@ from get_htm import find as find_htm_files
 from excel_parser import xl_iterator as xli 
 from openpyxl import  load_workbook, Workbook
 import watson_training_utils as wtu
+import s3_utils as s3u
+import subprocess
+
+# Start timer
+start_time = time.time()
+print('Executing Discovery Utils...')
 
 # For Creating a new Collection
 
@@ -89,27 +95,36 @@ def deleteCollection(env_id, collection_id = None):
 
 # For creating configuration
 
-def createConfig(env_id):
-    with open(Path('C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/config.json')) as config_data:
+def createConfig(env_id, config_path = None):
+    config_path = config_path if config_path else Path(input('Please provide actual path for configuration file: '))
+
+    with open(Path(config_path)) as config_data:
         data = json.load(config_data)
         new_config = discovery.create_configuration(env_id, data['name'], data['description'], data['conversions'], data['enrichments'], data['normalizations']).get_result()
     print(json.dumps(new_config, indent = 4))
+    
     return new_config
 
 # For deleting configuration
 
 def deleteConfig(env_id, config_id = None):
+    
     config_id = config_id if config_id else input('ID of configuration to be deleted: ')
     config_delete = discovery.delete_configuration(env_id, config_id).get_result()
     print(json.dumps(config_delete, indent = 4))
+    
     return config_delete
 
 # For updating configuration
 
-def updateConfig(env_id, config_id = None):
+def updateConfig(env_id, config_id = None, config_path = None, config_name = None, config_desc = None):
     config_id = config_id if config_id else input('ID of configuration to be updated: ')
-    with open(Path('C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/config.json')) as config_data:
+    config_path = config_path if config_path else Path(input('Please provide actual path for configuration file: '))
+
+    with open(Path(config_path)) as config_data:
         data = json.load(config_data)
+        data['name'] = config_name if config_name else data['name']
+        data['description'] = config_desc if config_desc else data['description']
         updated_config = discovery.update_configuration(env_id, config_id, data['name'], data['description'], data['conversions'], data['enrichments'], data['normalizations']).get_result()
     print(json.dumps(updated_config, indent = 4))
     return updated_config
@@ -206,7 +221,10 @@ def addStopWords(env_id, collection_id = None, sw_file = None, sw_file_name = No
     collection_id = collection_id if collection_id else input('Please specify collection ID: ')
     sw_file = sw_file if sw_file else input('Please enter path for the stopword file: ')
     sw_file = Path(sw_file)
-    return discovery.create_stopword_list(env_id, collection_id, sw_file, sw_file_name)
+    with open(sw_file) as swf:
+        return discovery.create_stopword_list(env_id, collection_id, swf, sw_file_name)
+
+# To delete stopwords from a collection
 
 def deleteStopWords(env_id, collection_id = None):
     """
@@ -234,7 +252,19 @@ def queryDiscovery(env_id, collection_id, query):
         passage_characters = 1000
     )
 
+# To list training data
+
+def listTrainingData(env_id, collection_id):
+    return discovery.list_training_data(env_id, collection_id)
+
+# To delete training data
+
+def deleteTrainingData(env_id, collection_id):
+    collection_id = collection_id if collection_id else input('Please input collection ID: ')
+    return discovery.delete_all_training_data(env_id, collection_id)
+
 # Fallback for program
+
 def fallback(src, item = None):
     
     if src == 'start' or src == 'train':
@@ -258,54 +288,81 @@ def fallback(src, item = None):
     exit()
 
 # To start the training process
-def train(discovery, xl_path, COLLECTION_ID = None):
-    
-    COLLECTION_ID = COLLECTION_ID if COLLECTION_ID else input('please provide collection ID: ')
-    
-    # Load workbook and worksheet
-    wb = load_workbook(xl_path)
-    ws = wb['Sheet1']
 
-    # Get total records in the worksheet
-    dimensions = ws.calculate_dimension()
-    ROWS = int(dimensions.split('A1:D')[1])
-    
-    # since format has only 4 columns by default
-    COLS = 4
-    
-    # Get Excel data
-    xl_json = xli(ws, ROWS, COLS)
+def train(env_id, xl_path, COLLECTION_ID = None, alert = None):
 
-    # Get Discovery document mapping
-    disc_json = wtu.listAllDocuments(API_KEY, API_URL, ENV_ID, COLLECTION_ID)
+    if alert and not None:
+        train_alert = str(input('Do you want to train discovery? (Y/N): '))
+        if train_alert == 'N' or train_alert == 'n' or train_alert == 'No' or train_alert == 'no':
+            print('Exiting program..')
+            exit()
+        elif train_alert == 'Y' or train_alert == 'y' or train_alert == 'Yes' or train_alert == 'yes':
+            train(xl_path, COLLECTION_ID, False)
+        else:
+            print('Invalid input.. Please provide \'Y\' or \'N\'')
+            train(xl_path, COLLECTION_ID, True)
 
-    # Get the Relevancy training dictionary
-    training_json = wtu.watsonJSONgenerator(xl_json, disc_json, ENV_ID, COLLECTION_ID)
+    else:
+        COLLECTION_ID = COLLECTION_ID if COLLECTION_ID else 'aa479e91-1647-4c5a-b98d-57f01e7386d8'
+
+        # List Training Data
+        # print(listTrainingData(env_id, COLLECTION_ID))
+
+        # Delete Exisiting Training data if exists and create new
+        print(deleteTrainingData(env_id, COLLECTION_ID))
     
-    print('training watson discovery..')
-    print(json.dumps(training_json, indent=4))
+        # Load workbook and worksheet
+        wb = load_workbook(xl_path)
+        ws = wb['Sheet1']
 
-    for key in training_json:
-        discovery.add_training_data(
-            environment_id = training_json[key].get('environment_id'),
-            collection_id = training_json[key].get('collection_id'),
-            natural_language_query = training_json[key].get('natural_language_query'),
-            filter = None,
-            examples = training_json[key].get('examples')
-        )
+        # Get total records in the worksheet
+        dimensions = ws.calculate_dimension()
+        ROWS = int(dimensions.split('A1:D')[1])
+        
+        # since format has only 4 columns by default
+        COLS = 4
+        
+        # Get Excel data
+        xl_json = xli(ws, ROWS, COLS)
+
+        # Get Discovery document mapping
+        disc_json = wtu.listAllDocuments(API_KEY, API_URL, env_id, COLLECTION_ID)
+
+        # Get the Relevancy training dictionary
+        training_json = wtu.watsonJSONgenerator(xl_json, disc_json, env_id, COLLECTION_ID)
+        
+        print('training watson discovery..')
+        # print(json.dumps(training_json, indent=4))
+
+        for index, key in enumerate(training_json):
+
+            # If watson API dictionary exists
+            if key[index + 1].get('natural_language_query') is not None or key[index + 1].get('examples') is not None:
+                print('{} query is \"{}\" and has {} example(s)'.format(index + 1, key[index+1].get('natural_language_query'), len(key[index+1].get('examples'))))
+                discovery.add_training_data(
+                    environment_id = key[index + 1].get('environment_id'),
+                    collection_id = key[index + 1].get('collection_id'),
+                    natural_language_query = key[index + 1].get('natural_language_query'),
+                    filter = None,
+                    examples = key[index + 1].get('examples')
+                )
+            else:
+                print('Skipping dirty query..')
+                pass
 
 # Check existence of collection in environment
 
 def getCollectionID(env_id):
     cugid = cfaqid = None
 
+    print('Available Collections..\n-----------------------------------------')
     collections = listCollections(env_id)
     collections = collections.get('collections')
     
     for collection in collections:
-        if collection.get('name') == 'TEST - Central User Guide':
+        if collection.get('name') == 'Central User Guide':
             cugid = collection.get('collection_id')
-        if collection.get('name') == 'TEST - Central FAQs':
+        if collection.get('name') == 'Central FAQs':
             cfaqid = collection.get('collection_id')
     
     if cugid is not None and cfaqid is not None:
@@ -315,67 +372,138 @@ def getCollectionID(env_id):
 
     return cugid, cfaqid, collection_exists
 
-# To start the entire workflow
-def startWorkflow(env_id):
-    cugid, cfaqid, collection_exists = getCollectionID(env_id)
+# Check existence of configuration in environment
 
+def getConfigurationID(env_id):
+    cugConfig = cfaqConfig = config_exists = None
+    
+    print('Available Configurations..\n-----------------------------------------')
+    configs = listConfig(env_id)
+    configs_list = configs['configurations']
+    
+    for config in configs_list:
+        if config['name'] == 'Central User Guide Configuration':
+            cugConfig = config.get('configuration_id')
+        if config['name'] == 'Central FAQs and Terms Configuration':
+            cfaqConfig = config.get('configuration_id')
+    
+    if cugConfig is not None and cfaqConfig is not None:
+        config_exists = True
+    else:
+        config_exists = False
+
+    return cugConfig, cfaqConfig, config_exists
+
+# To start the entire workflow
+
+def startWorkflow(env_id, xl_path, train_alert):
+    
+    cugConfig, cfaqConfig, config_exists = getConfigurationID(env_id)
+    # Create config if it doesn't exist
+    """
+    ADD CONFIGURATION NOT WORKING THROUGH PYTHON SDK - MANUALLY ADDED THROUGH CURL
+    example:
+        curl -X POST -u "apikey":"{apikey}" -H "Content-Type: application/json" -d @{file.json} "https://gateway-wdc.watsonplatform.net/discovery/api/v1/environments/{environment_id}/configurations?version=2019-04-30"
+    """
+    if config_exists:
+        print('\n{} -> Central User Guide Configuration\n{} -> FAQs / Terms Configuration\n'.format(cugConfig, cfaqConfig))
+    
+    if not config_exists:
+        config_paths = ['user_guide_config.json', 'faq_config.json']
+        
+        for config_path in config_paths:
+            cmd = 'curl -X POST -u "apikey":"'+ API_KEY +'" -H "Content-Type: application/json" -d @'+ config_path +' "https://gateway-wdc.watsonplatform.net/discovery/api/v1/environments/'+ env_id +'/configurations?version=2019-04-30"'
+            print('Executing cURL..\n-----------------------------------------\n{}\n-----------------------------------------'.format(cmd))
+            curl = subprocess.call(cmd, shell = True)
+            print('\n---CURL---\nCODE: {}\n-----------------------------------------'.format(curl))
+
+        cugConfig, cfaqConfig, config_exists = getConfigurationID(env_id)
+
+    cugid, cfaqid, collection_exists = getCollectionID(env_id)
+    
     # Delete Existing collection
     if collection_exists:
-        print(json.dumps(deleteCollection(env_id, cugid), indent = 4))
-        print(json.dumps(deleteCollection(env_id, cfaqid), indent = 4))
+        deleteCollection(env_id, cugid)
+        deleteCollection(env_id, cfaqid)
         collection_exists = False
 
     # Create two collections
     if not collection_exists:
 
-        print('Creating Collections..\n')
-        createCollection(env_id, name = 'TEST - Central User Guide', desc = 'Testing python utils')
-        createCollection(env_id, name = 'TEST - Central FAQs', desc = 'Testing python utils')
+        # Create Central User Guide and Central FAQs collections
+        print('Creating Collections..\n-----------------------------------------')
+        createCollection(env_id, name = 'Central User Guide', desc = 'Testing python utils')
+        createCollection(env_id, name = 'Central FAQs', desc = 'Testing python utils')
+        print('Finished creating collections in {0:.2g}s..\n'.format(time.time() - start_time))
 
         cugid, cfaqid, collection_exists = getCollectionID(env_id)
-        print('\n{} is the Central User Guide Collection\n{} is the Central FAQs Collection\n'.format(cugid, cfaqid))
+        print('-----------------------------------------\n{} is the Central User Guide Collection\n{} is the Central FAQs Collection\n-----------------------------------------'.format(cugid, cfaqid))
 
         # Apply configuration to those collections
-        print('Updating collections with configuration..\n')
-        updateCollection(env_id, cugid, '2af5f657-f927-4281-89f3-f682fc66d849', name = 'TEST - Central User Guide', flag = True)
-        updateCollection(env_id, cfaqid, 'b5f6957b-6581-44f0-bb69-c7e0e5dc1d01', name = 'TEST - Central FAQs', flag = True)
+        print('Updating collections with configuration..\n-----------------------------------------')
+        updateCollection(env_id, cugid, cugConfig, name = 'Central User Guide', flag = True)
+        updateCollection(env_id, cfaqid, cfaqConfig, name = 'Central FAQs', flag = True)
+        print('Finished updating collections in {0:.2g}s..\n'.format(time.time() - start_time))
         
-        # Upload Documents | S3 Bucket files - TBD
-        print('Uploading documents to collections..\n')
+        # Upload Documents | S3 Bucket files
+        print('Uploading documents to collections..\n-----------------------------------------')
         tfaq_files = [{
             "source": 'C:/Users/manikvig/Documents/search fiddle/terms/faqs.htm',
-            "meta": 'https://help.central.arubanetworks.com/latest/documentation/online_help/content/faqs.htm'
+            "meta": 'https://help.central.arubanetworks.com/latest/documentation/online_help/content/faqs.htm',
+            "filename": 'faqs.htm'
         }, {
-            "source": 'C:/Users/manikvig/Documents/search fiddle/terms/terms.htm',
-            "meta": 'https://help.central.arubanetworks.com/2.4.8/documentation/online_help/content/common%20files/topic_files/terms.htm'
+            "source": 'C:/Users/manikvig/Documents/search fiddle/terms/terms_a.htm',
+            "meta": 'https://help.central.arubanetworks.com/2.4.8/documentation/online_help/content/common%20files/topic_files/terms.htm',
+            "filename": 'terms.htm'
         }, {
-            "source": 'C:/Users/manikvig/Documents/search fiddle/terms/terms2.htm',
-            "meta": 'https://help.central.arubanetworks.com/2.4.8/documentation/online_help/content/common%20files/topic_files/terms.htm'
+            "source": 'C:/Users/manikvig/Documents/search fiddle/terms/terms_b.htm',
+            "meta": 'https://help.central.arubanetworks.com/2.4.8/documentation/online_help/content/common%20files/topic_files/terms.htm',
+            "filename": 'terms.htm'
         }]
         
         for fo in tfaq_files:
             with open(Path(fo['source']), encoding='UTF-8') as f:
-                add_doc = discovery.add_document(env_id, cfaqid, file=f, metadata = json.dumps({"source_url": fo['meta']}), filename = fo['meta']).get_result()
+                add_doc = discovery.add_document(env_id, cfaqid, file=f, metadata = json.dumps({"source_url": fo['meta']}), filename = fo['filename']).get_result()
                 print(json.dumps(add_doc, indent=4))
+        print('Finished uploading documents to FAQs collection {0:.2g}s..\n'.format(time.time() - start_time))
 
-        uploadLocalDocumentsToDiscovery(Path('C:/Users/manikvig/Desktop/content'), '\w*\.htm', 'https://help.central.arubanetworks.com/latest/documentation/online_help/content/', env_id, cugid)
+        docs = s3u.uploadS3toDiscovery()
+        for doc in docs:
+            print(json.dumps(discovery.add_document(env_id, cugid, file = doc['data'], filename = doc['meta'], metadata = json.dumps(doc['meta'])).get_result(), indent = 4))
+        print('Finished uploading documents from s3 in {0:.2g}s..\n'.format(time.time() - start_time))
+        
+        # To upload from local directory
+        # uploadLocalDocumentsToDiscovery(Path('C:/Users/manikvig/Desktop/content'), '\w*\.htm', 'https://help.central.arubanetworks.com/latest/documentation/online_help/content/', env_id, cugid)
+
+        # Begin training
+        # train(env_id, xl_path, cugid, train_alert)
+        # print('Finished training in {0:.2g}s..\n'.format(time.time() - start_time))
 
         # Upload stopwords to Central User Guide
-        print('\nChecking stopword status..')
-        print(json.dumps(getStopWordStatus(ENV_ID, cugid), indent = 4))
-        print('Uploading stopwords..')
-        print(json.dumps(addStopWords(ENV_ID, cugid, 'C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/stopwords.txt', 'Test Stopwords for CUG')))
+        print('Uploading stopwords..\n-----------------------------------------')
+        print(addStopWords(ENV_ID, cugid, 'C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/stopwords.txt', 'Test Stopwords for CUG'))
+        print('Finished uploading stopwords in {0:.2g}s..\n'.format(time.time() - start_time))
+
+        # Upload Expansions List
+        print('Uploading Expansions List..\n-----------------------------------------')
+        with open('C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/expansions.json') as expansions:
+            expansion_list = json.load(expansions)
+            print(discovery.create_expansions(env_id, cugid, expansion_list['expansions']))
 
 if __name__ == "__main__":
-    # BASE_URL_ONLINE = '<SERVER_BASE_PATH>'
-    # BASE_URL_OFFLINE = '<LOCAL_BASE_PATH>'
 
-    API_KEY = 'bEyrHwAUKTw4pwmehUFyQ1SYLD7ubOLPnTU3iXTOkVNW'
+    # Production Instance Creds
+    # API_KEY = 'bEyrHwAUKTw4pwmehUFyQ1SYLD7ubOLPnTU3iXTOkVNW'
+    # ENV_ID = 'd1d4bd73-06eb-4c69-ac07-8d7aadac76d4'
+
+    # Personal instance creds
+    API_KEY = 'gTAsSzZBIxtS_p5g1-JBIjfeXs0F2a0DtOZI7YAzO2Hk'
+    ENV_ID = '7206305c-d647-41f2-a1cc-eb909ec2c641'
+
     API_URL = 'https://gateway-wdc.watsonplatform.net/discovery/api'
-    ENV_ID = 'c545c99f-aced-48b1-b3ef-fa498bfedeb7'
-
     COLLECTION_ID = ''
-
+    XL_PATH = 'C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/poi-dupeless.xlsx'
+ 
     discovery = DiscoveryV1(
         version="2019-03-25",
         url = API_URL,
@@ -395,7 +523,6 @@ if __name__ == "__main__":
     """
     parser.add_argument('-sw', '--start', default = False, action = 'store_true', help = 'Begins the workflow')
     parser.add_argument('-t', '--train', default = False, action = 'store_true', help = 'Asks to train discovery')
-    parser.add_argument('-delta', '--delta', default = False, action = 'store_true', help = 'Gets report from s3 Bucket')
     
     """
     Optional | Mutually Exclusive flags
@@ -433,10 +560,12 @@ if __name__ == "__main__":
         (args.collection or args.config) and fallback('train' if args.train else 'start', args.train if args.train else args.start)
 
         # Start workflow
-        args.start and args.train == False and startWorkflow(ENV_ID)
+        args.start and not args.train and startWorkflow(ENV_ID, XL_PATH, True)
+        args.start and args.train and startWorkflow(ENV_ID, XL_PATH, False)
         
-        # Train discovery
-        args.train and train(discovery, Path('C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/poi.xlsx'), COLLECTION_ID)
+    # Train discovery
+    elif args.train:
+        args.train and train(ENV_ID, Path(XL_PATH), COLLECTION_ID, False)
 
     # List collection / configuration / stopwords
     elif args.list:
@@ -503,3 +632,6 @@ if __name__ == "__main__":
         
         if args.action or (args.collection or args.config or args.stopwords):
             fallback('action' if args.action else 'action_item', args.action if args.action else (('Collection Item' if args.collection else 'Config Item')) if (args.collection or args.config) else 'Stopwords Item')
+
+# End timer
+print('Finished in {0:.2g}s..'.format(time.time() - start_time))

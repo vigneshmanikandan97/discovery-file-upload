@@ -1,0 +1,166 @@
+{
+    "environment_id": "c545c99f-aced-48b1-b3ef-fa498bfedeb7",
+    "name": "Central User Guide Configuration",
+    "description": "Configures the central user guide collection",
+    "conversions": {
+        "html": {
+            "exclude_content": {
+                "xpaths": [
+                    "//*[ @class='tab-bar']",
+                    "//*[ @class='right']",
+                    "//*[ @class='MCBreadcrumbsBox_0']",
+                    "//*[ @class='modal']",
+                    "//*[ @class='feedback_yes']",
+                    "//*[ @class='feedback_no']",
+                    "//*[ @class='sideContent']",
+                    "//*[ @class='search']"
+                ]
+            },
+            "exclude_tag_attributes": [
+                "EVENT_ACTIONS"
+            ],
+            "exclude_tags_completely": [
+                "script",
+                "sup",
+                "footer"
+            ],
+            "exclude_tags_keep_content": [
+                "font",
+                "em",
+                "span",
+                "p"
+            ],
+            "extracted_fields": {
+                "document-title": {
+                    "css_selector": "title",
+                    "type": "string"
+                },
+                "main-content": {
+                    "css_selector": ".mainContent",
+                    "type": "string"
+                },
+                "main-section": {
+                    "css_selector": ".main-section",
+                    "type": "string"
+                }
+            },
+            "keep_content": {
+                "xpaths": []
+            }
+        },
+        "pdf": {
+            "heading": {
+                "fonts": [
+                    {
+                        "level": 1,
+                        "max_size": 80,
+                        "min_size": 24
+                    },
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 2,
+                        "max_size": 24,
+                        "min_size": 18
+                    },
+                    {
+                        "bold": true,
+                        "level": 2,
+                        "max_size": 24,
+                        "min_size": 18
+                    },
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 3,
+                        "max_size": 18,
+                        "min_size": 13
+                    },
+                    {
+                        "bold": true,
+                        "level": 3,
+                        "max_size": 18,
+                        "min_size": 13
+                    },
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 4,
+                        "max_size": 13,
+                        "min_size": 11
+                    }
+                ]
+            }
+        },
+        "segment": {
+            "annotated_fields": [],
+            "enabled": false
+        },
+        "word": {
+            "heading": {
+                "fonts": [
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 1,
+                        "min_size": 24
+                    },
+                    {
+                        "bold": true,
+                        "italic": false,
+                        "level": 2,
+                        "max_size": 23,
+                        "min_size": 18
+                    },
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 3,
+                        "max_size": 17,
+                        "min_size": 14
+                    },
+                    {
+                        "bold": true,
+                        "italic": false,
+                        "level": 4,
+                        "max_size": 13,
+                        "min_size": 13
+                    }
+                ],
+                "styles": [
+                    {
+                        "level": 1,
+                        "names": [
+                            "pullout heading",
+                            "pulloutheading",
+                            "header"
+                        ]
+                    },
+                    {
+                        "level": 2,
+                        "names": [
+                            "subtitle"
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "enrichments": [],
+    "normalizations": [
+        {
+            "operation": "remove",
+            "source_field": "html"
+        },
+        {
+            "destination_field": "title",
+            "operation": "move",
+            "source_field": "extracted_fields.document-title"
+        },
+        {
+            "destination_field": "source",
+            "operation": "move",
+            "source_field": "metadata.source_url"
+        }
+    ]
+}

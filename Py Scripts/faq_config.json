@@ -1,0 +1,139 @@
+{
+    "environment_id": "c545c99f-aced-48b1-b3ef-fa498bfedeb7",
+    "name": "Central FAQs and Terms Configuration",
+    "description": "",
+    "conversions": {
+        "html": {
+            "exclude_content": {
+                "xpaths": []
+            },
+            "exclude_tag_attributes": [
+                "EVENT_ACTIONS"
+            ],
+            "exclude_tags_completely": [
+                "script",
+                "sup"
+            ],
+            "exclude_tags_keep_content": [
+                "font",
+                "em",
+                "span"
+            ],
+            "keep_content": {
+                "xpaths": []
+            }
+        },
+        "pdf": {
+            "heading": {
+                "fonts": [
+                    {
+                        "level": 1,
+                        "max_size": 80,
+                        "min_size": 24
+                    },
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 2,
+                        "max_size": 24,
+                        "min_size": 18
+                    },
+                    {
+                        "bold": true,
+                        "level": 2,
+                        "max_size": 24,
+                        "min_size": 18
+                    },
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 3,
+                        "max_size": 18,
+                        "min_size": 13
+                    },
+                    {
+                        "bold": true,
+                        "level": 3,
+                        "max_size": 18,
+                        "min_size": 13
+                    },
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 4,
+                        "max_size": 13,
+                        "min_size": 11
+                    }
+                ]
+            }
+        },
+        "segment": {
+            "enabled": true,
+            "selector_tags": [
+                "h1",
+                "h2"
+            ]
+        },
+        "word": {
+            "heading": {
+                "fonts": [
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 1,
+                        "min_size": 24
+                    },
+                    {
+                        "bold": true,
+                        "italic": false,
+                        "level": 2,
+                        "max_size": 23,
+                        "min_size": 18
+                    },
+                    {
+                        "bold": false,
+                        "italic": false,
+                        "level": 3,
+                        "max_size": 17,
+                        "min_size": 14
+                    },
+                    {
+                        "bold": true,
+                        "italic": false,
+                        "level": 4,
+                        "max_size": 13,
+                        "min_size": 13
+                    }
+                ],
+                "styles": [
+                    {
+                        "level": 1,
+                        "names": [
+                            "pullout heading",
+                            "pulloutheading",
+                            "header"
+                        ]
+                    },
+                    {
+                        "level": 2,
+                        "names": [
+                            "subtitle"
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "enrichments": [],
+    "normalizations": [
+        {
+            "operation": "remove",
+            "source_field": "html"
+        },
+        {
+            "destination_field": "source",
+            "operation": "move",
+            "source_field": "metadata.source_url"
+        }
+    ]
+}
