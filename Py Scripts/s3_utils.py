@@ -4,8 +4,8 @@ import json
 from io import StringIO as sio
 
 # AWS credentials
-aws_access_key_id = 'AKIASZOVVKFBPQUTHB47'
-aws_secret_access_key = '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'
+aws_access_key_id = '<AWS_ACCESS_KEY_ID>'
+aws_secret_access_key = '<AWS_SECRET_KEY>'
 aws_bucket = 'help.central.arubanetworks.com'
 
 # creating boto object

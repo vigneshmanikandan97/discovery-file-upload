@@ -492,20 +492,16 @@ def startWorkflow(env_id, xl_path, train_alert):
 
 if __name__ == "__main__":
 
-    # Production Instance Creds
-    # API_KEY = 'bEyrHwAUKTw4pwmehUFyQ1SYLD7ubOLPnTU3iXTOkVNW'
-    # ENV_ID = 'd1d4bd73-06eb-4c69-ac07-8d7aadac76d4'
+    # instance creds
+    API_KEY = '<YOUR_API_KEY>'
+    ENV_ID = '<YOUR_ENVIRONMENT_ID>'
 
-    # Personal instance creds
-    API_KEY = 'gTAsSzZBIxtS_p5g1-JBIjfeXs0F2a0DtOZI7YAzO2Hk'
-    ENV_ID = '7206305c-d647-41f2-a1cc-eb909ec2c641'
-
-    API_URL = 'https://gateway-wdc.watsonplatform.net/discovery/api'
+    API_URL = '<YOUR_API_URL>'
     COLLECTION_ID = ''
-    XL_PATH = 'C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/poi-dupeless.xlsx'
+    XL_PATH = '<EXCEL_SHEET_PATH>'
  
     discovery = DiscoveryV1(
-        version="2019-03-25",
+        version="<VERSION>",
         url = API_URL,
         iam_apikey = API_KEY
     )

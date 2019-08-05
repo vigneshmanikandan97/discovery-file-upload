@@ -11,7 +11,7 @@ def listAllDocuments(api_key, api_url, env_id, collection_id):
     """
 
     discovery = DiscoveryV1(
-        version = "2019-03-25",
+        version = "<VERSION>",
         iam_apikey = api_key,
         url = api_url
     )
