@@ -234,6 +234,37 @@ def deleteStopWords(env_id, collection_id = None):
     collection_id = collection_id if collection_id else input('Please specify collection ID: ')
     return discovery.delete_stopword_list(env_id, collection_id)
 
+# To get expansions list status from a collection
+def getExpansionListStatus(env_id, collection_id = None):
+    """
+    params: Environment ID and Collection ID
+    returns: Details of available stopword list in JSON
+    """
+    collection_id = collection_id if collection_id else input('Please specify collection ID: ')
+    return discovery.list_expansions(env_id, collection_id)
+
+# To add stopwords to a collection
+
+def addExpansionsList(env_id, expansionsJSON_path = None, collection_id = None):
+    """
+    params: Environment ID, Expansions JSON path (loads), Collection ID (optional, 'None' by default)
+    returns: Details of the expansions as JSON
+    """
+    collection_id = collection_id if collection_id else input('Please specify the appropriate collection ID: ')
+    with open(Path(expansionsJSON_path)) as expansions:
+            expansion_list = json.load(expansions)
+            return discovery.create_expansions(env_id, collection_id, expansion_list['expansions'])
+
+# To delete stopwords from a collection
+
+def deleteExpansionsList(env_id, collection_id = None):
+    """
+    params: Environment ID, Collection ID
+    returns: Details of the deleted expansions list as JSON
+    """
+    collection_id = collection_id if collection_id else input('Please specify the appropriate collection ID: ')
+    return discovery.delete_expansions(env_id, collection_id)
+
 # To query discovery (NLQ)
 
 def queryDiscovery(env_id, collection_id, query):
@@ -481,14 +512,12 @@ def startWorkflow(env_id, xl_path, train_alert):
 
         # Upload stopwords to Central User Guide
         print('Uploading stopwords..\n-----------------------------------------')
-        print(addStopWords(ENV_ID, cugid, 'C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/stopwords.txt', 'Test Stopwords for CUG'))
+        print(addStopWords(ENV_ID, cugid, 'C:/Users/manikvig/Documents/Work/AI Search/discovery-file-upload/Assets/stopwords.txt', 'Test Stopwords for CUG'))
         print('Finished uploading stopwords in {0:.2g}s..\n'.format(time.time() - start_time))
 
         # Upload Expansions List
         print('Uploading Expansions List..\n-----------------------------------------')
-        with open('C:/Users/manikvig/Documents/Work/discovery-file-upload/Assets/expansions.json') as expansions:
-            expansion_list = json.load(expansions)
-            print(discovery.create_expansions(env_id, cugid, expansion_list['expansions']))
+        print(addExpansionsList(ENV_ID, cugid))
 
 if __name__ == "__main__":
 
@@ -537,6 +566,7 @@ if __name__ == "__main__":
     action_item.add_argument('-collection', dest = 'collection', default = False, action = 'store_true', help = 'Collection Item')
     action_item.add_argument('-config', dest = 'config', default = False, action = 'store_true', help = 'Configuration Item')
     action_item.add_argument('-stopwords', dest = 'stopwords', default = False, action = 'store_true' , help = 'Stopwords Item')
+    action_item.add_argument('-expansions', dest = 'expansions', default = False, action = 'store_true' , help = 'Expansions Item')
     
     #  Parse keyword arguments
     args = parser.parse_args()
@@ -580,6 +610,9 @@ if __name__ == "__main__":
             
             elif args.stopwords is not None:
                 print(json.dumps(getStopWordStatus(ENV_ID), indent = 4))
+
+            elif args.expansions is not None:
+                print(json.dumps(getExpansionListStatus(ENV_ID), indent = 4))
 
             else:
                 fallback('list')
@@ -630,4 +663,4 @@ if __name__ == "__main__":
             fallback('action' if args.action else 'action_item', args.action if args.action else (('Collection Item' if args.collection else 'Config Item')) if (args.collection or args.config) else 'Stopwords Item')
 
 # End timer
-print('Finished in {0:.2g}s..'.format(time.time() - start_time))
+print('Finished in {0:.2g}s..'.format(round((time.time() - start_time) % 60)))
