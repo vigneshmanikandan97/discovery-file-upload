@@ -612,7 +612,7 @@ if __name__ == "__main__":
                 print(json.dumps(getStopWordStatus(ENV_ID), indent = 4))
 
             elif args.expansions is not None:
-                print(json.dumps(getExpansionsStatus(ENV_ID), indent = 4))
+                print(json.dumps(getExpansionListStatus(ENV_ID), indent = 4))
 
             else:
                 fallback('list')
