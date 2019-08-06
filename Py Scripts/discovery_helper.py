@@ -663,4 +663,4 @@ if __name__ == "__main__":
             fallback('action' if args.action else 'action_item', args.action if args.action else (('Collection Item' if args.collection else 'Config Item')) if (args.collection or args.config) else 'Stopwords Item')
 
 # End timer
-print('Finished in {0:.2g}s..'.format(time.time() - start_time))
+print('Finished in {0:.2g}s..'.format(round((time.time() - start_time) % 60)))
