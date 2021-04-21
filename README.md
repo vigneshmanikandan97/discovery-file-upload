@@ -60,4 +60,5 @@ python discovery_helper.py -list=[all, one] [-collection, -config]
 If you use ```-list=one```, the program will prompt for collection or configuration ID because it is mandatory.
 
 
-&copy;Aruba Networks
+### Contributors
+[Vignesh Manikandan](https://github.com/vigneshmanikandan97)
