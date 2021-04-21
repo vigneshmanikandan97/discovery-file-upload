@@ -2,11 +2,12 @@ import boto3
 import botocore
 import json
 from io import StringIO as sio
+import config_parser as cfg
 
 # AWS credentials
 aws_access_key_id = '<AWS_ACCESS_KEY_ID>'
 aws_secret_access_key = '<AWS_SECRET_KEY>'
-aws_bucket = 'help.central.arubanetworks.com'
+aws_bucket = cfg.getS3Config('bucket')
 
 # creating boto object
 s3 = boto3.resource('s3', aws_access_key_id= aws_access_key_id, aws_secret_access_key= aws_secret_access_key)

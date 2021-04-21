@@ -3,6 +3,9 @@ from pathlib import Path
 
 import xmltodict
 
+import config_parser as cfg
+
+# unzip toc-xml.tar.gz from Assets folder first before referencing here
 # Path of toc.xml
 TOC_XML = '<PATH/*.xml>'
 
@@ -19,7 +22,7 @@ def parseXML(xml):
 
 
 def cleanerUtil(json_file):
-    path_junk = 'http://help.central.arubanetworks.com/latest/documentation/online_help'
+    path_junk = cfg.getTocConfig('path_junk')
     refined_htm = htm.replace(path_junk, '')
     return json.loads(toc_json), refined_htm
 

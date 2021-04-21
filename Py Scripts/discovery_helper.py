@@ -15,6 +15,7 @@ from openpyxl import  load_workbook, Workbook
 import watson_training_utils as wtu
 import s3_utils as s3u
 import subprocess
+import config_parser as cfg
 
 # Start timer
 start_time = time.time()
@@ -480,15 +481,15 @@ def startWorkflow(env_id, xl_path, train_alert):
         print('Uploading documents to collections..\n-----------------------------------------')
         tfaq_files = [{
             "source": 'C:/Users/manikvig/Documents/search fiddle/terms/faqs.htm',
-            "meta": 'https://help.central.arubanetworks.com/latest/documentation/online_help/content/faqs.htm',
+            "meta": cfg.getDiscoveryHelperConfig('faqs'),
             "filename": 'faqs.htm'
         }, {
             "source": 'C:/Users/manikvig/Documents/search fiddle/terms/terms_a.htm',
-            "meta": 'https://help.central.arubanetworks.com/2.4.8/documentation/online_help/content/common%20files/topic_files/terms.htm',
+            "meta": cfg.getDiscoveryHelperConfig('terms'),
             "filename": 'terms.htm'
         }, {
             "source": 'C:/Users/manikvig/Documents/search fiddle/terms/terms_b.htm',
-            "meta": 'https://help.central.arubanetworks.com/2.4.8/documentation/online_help/content/common%20files/topic_files/terms.htm',
+            "meta": cfg.getDiscoveryHelperConfig('terms'),
             "filename": 'terms.htm'
         }]
         
