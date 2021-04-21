@@ -512,7 +512,7 @@ def startWorkflow(env_id, xl_path, train_alert):
 
         # Upload stopwords to Central User Guide
         print('Uploading stopwords..\n-----------------------------------------')
-        print(addStopWords(ENV_ID, cugid, 'C:/Users/manikvig/Documents/Work/AI Search/discovery-file-upload/Assets/stopwords.txt', 'Test Stopwords for CUG'))
+        print(addStopWords(ENV_ID, cugid, 'Assets/stopwords.txt', 'Test Stopwords for CUG'))
         print('Finished uploading stopwords in {0:.2g}s..\n'.format(time.time() - start_time))
 
         # Upload Expansions List
