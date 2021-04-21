@@ -2,6 +2,8 @@
 Python script to operate on Watson Discovery Collections - Upload Documents
 
 ## Directions for Use
+#### cd into working directory and..
+
 * Please run from virtual source
   ```
   pip install virtualenv
@@ -19,7 +21,15 @@ Python script to operate on Watson Discovery Collections - Upload Documents
   ```
   pip install -r requirements.txt
   ```
-
+* Extract the configuration file
+```
+  tar -zxvf wdu-config.tar.gz
+```
+#### cd into ./Assets and..
+* Extract the TOC file
+```
+  tar -zxvf toc-xml.tar.gz
+```
 ## Script Features
 This script contains methods to perform CRUD on Watson Discovery Collection.
 
