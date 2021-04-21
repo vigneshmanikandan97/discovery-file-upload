@@ -1,4 +1,4 @@
-# discovery-file-upload
+# Watson Discovery utility
 Python script to operate on Watson Discovery Collections - Upload Documents
 
 ## Directions for Use
